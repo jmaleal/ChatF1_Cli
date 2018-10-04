@@ -3,12 +3,23 @@ package Comunicacao;
 import java.util.*;
 import java.net.*;
 import java.io.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class presencesClient {
 
     static final int DEFAULT_PORT = 8082;
     static final String DEFAULT_HOST = "127.0.0.1";
+    private Socket ligacao;
+    private BufferedReader in;
+    private PrintWriter out;
+    private boolean estado;
 
+    /**
+     * Inicializa os objetos ligacao, in e out.
+     *
+     * @param args
+     */
     public void startCli(String[] args) {
         //    public static void main(String[] args) {
         String servidor = DEFAULT_HOST;
@@ -30,8 +41,6 @@ public class presencesClient {
 
         System.out.println("Vai ligar ao porto " + porto + " da maquina " + endereco.getHostName());
 
-        Socket ligacao = null;
-
         try {
             ligacao = new Socket(endereco, porto);
         } catch (Exception e) {
@@ -43,23 +52,17 @@ public class presencesClient {
         System.out.println("ligado ao porto " + porto + " no endereco " + endereco.getHostName());
 
         try {
-            BufferedReader in = new BufferedReader(new InputStreamReader(ligacao.getInputStream()));
+            in = new BufferedReader(new InputStreamReader(ligacao.getInputStream()));
 
-            PrintWriter out = new PrintWriter(ligacao.getOutputStream());
+            out = new PrintWriter(ligacao.getOutputStream());
 
+            /* O PRIMEIRO ENVIO É PARA TENTAR ESTABELECER A LIGAÇÃO*/
             String request = "get" + " " + InetAddress.getLocalHost();
 
             out.println(request);
             out.flush();
 
-            String msg;
-            while ((msg = in.readLine()) != null) {
-                System.out.println("Resposta do servidor: " + msg);
-            }
-
-            while (true) {
-            }
-
+            estado = true;
             //   ligacao.close();
             // System.out.println("Terminou a ligacao!");
         } catch (IOException e) {
@@ -68,4 +71,28 @@ public class presencesClient {
         }
 
     }
+
+    public void enviarMsg(String msg) {
+
+        String teste = "Teste";
+        /*TRANSFORMAR EM ASCCI ANTES DO ENVIO*/
+        out.println(teste);
+
+    }
+
+    private void msgRecebida() {
+        try {
+            String msg;
+            while ((msg = in.readLine()) != null && estado == true) {
+                System.out.println("Resposta do servidor: " + msg);
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(presencesClient.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public void desligar() {
+        out.flush();
+    }
+
 }

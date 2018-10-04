@@ -40,13 +40,8 @@ public class ChatUI extends JFrame {
         scroller.setViewportView(tPane);
 
         tfield.addActionListener(e -> {
-            counter++;
-            if (counter == 2) {
-                counter = 0;
-            }
             String text = tfield.getText() + "\n";
-            appendToPane(tPane, text, colours[counter]);
-            tfield.selectAll();
+            AdicionarMsgEnviada(tPane, text, Color.RED);
         });
 
         getContentPane().add(scroller, BorderLayout.CENTER);
@@ -66,7 +61,23 @@ public class ChatUI extends JFrame {
         client.startCli(argsCli);*/
     }
 
-    private void appendToPane(JTextPane tp, String msg, Color c) {
+    private void AdicionarMsgEnviada(JTextPane tp, String msg, Color c) {
+        StyleContext sc = StyleContext.getDefaultStyleContext();
+        AttributeSet aset = sc.addAttribute(SimpleAttributeSet.EMPTY,
+                StyleConstants.Foreground, c);
+
+        aset = sc.addAttribute(aset, StyleConstants.FontFamily, "Lucida Console");
+        aset = sc.addAttribute(aset, StyleConstants.Alignment,
+                StyleConstants.ALIGN_JUSTIFIED);
+
+        int len = tp.getDocument().getLength();
+        tp.setCaretPosition(len);
+        tp.setCharacterAttributes(aset, false);
+        tp.replaceSelection(msg);
+
+    }
+
+    private void AdicionarMsgRecebida(JTextPane tp, String msg, Color c) {
         StyleContext sc = StyleContext.getDefaultStyleContext();
         AttributeSet aset = sc.addAttribute(SimpleAttributeSet.EMPTY,
                 StyleConstants.Foreground, c);
