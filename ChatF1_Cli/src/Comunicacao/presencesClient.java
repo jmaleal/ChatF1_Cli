@@ -1,35 +1,30 @@
 package Comunicacao;
 
-import java.util.*;
 import java.net.*;
 import java.io.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.Scanner;
 
 public class presencesClient {
 
     static final int DEFAULT_PORT = 8082;
     static final String DEFAULT_HOST = "127.0.0.1";
-    private Socket ligacao;
-    private BufferedReader in;
-    private PrintWriter out;
-    private boolean estado;
+    private static boolean ativo = false;
 
-    /**
-     * Inicializa os objetos ligacao, in e out.
-     *
-     * @param args
-     */
-    public void startCli(String[] args) {
-        //    public static void main(String[] args) {
+    /*OBJETOS LIGAÇÃO*/
+    private static BufferedReader in;
+    private static PrintWriter out;
+    private static Socket ligacao;
+
+    public static void main(String[] args) {
         String servidor = DEFAULT_HOST;
         int porto = DEFAULT_PORT;
 
+        /*DESCOMENTAR.....  
+        
         if (args.length != 1) {
             System.out.println("Erro: use java presencesClient <ip>");
             System.exit(-1);
-        }
-
+        }*/
         //Cria um objecto da classe InetAddress com base no nome do servidor
         InetAddress endereco = null;
         try {
@@ -41,8 +36,11 @@ public class presencesClient {
 
         System.out.println("Vai ligar ao porto " + porto + " da maquina " + endereco.getHostName());
 
+        ligacao = null;
+
         try {
             ligacao = new Socket(endereco, porto);
+            ativo = true;
         } catch (Exception e) {
             System.err.println("erro ao criar socket...");
             e.printStackTrace();
@@ -56,15 +54,26 @@ public class presencesClient {
 
             out = new PrintWriter(ligacao.getOutputStream());
 
-            /* O PRIMEIRO ENVIO É PARA TENTAR ESTABELECER A LIGAÇÃO*/
-            String request = "get" + " " + InetAddress.getLocalHost();
+//<editor-fold defaultstate="collapsed" desc="Msg de Ligação">
+// Enviar msg de ligacao
+            String request = "get" + " " + endereco;
 
             out.println(request);
             out.flush();
 
-            estado = true;
-            //   ligacao.close();
-            // System.out.println("Terminou a ligacao!");
+            String msg;
+            System.out.println("\n\n\nSERVIDOR:\n");
+            while ((msg = in.readLine()) != null && msg.length() > 0) {
+                System.out.println(msg);
+            }
+
+            /* while ((msg = in.readLine()) != null) {
+                System.out.println("Resposta do servidor: " + msg);
+            }*/
+//</editor-fold>
+            //inicia comunicação recorrendo a um método á parte
+            iniciaComunicacao();
+
         } catch (IOException e) {
             System.out.println("Erro ao comunicar com o servidor: " + e);
             System.exit(1);
@@ -72,27 +81,25 @@ public class presencesClient {
 
     }
 
-    public void enviarMsg(String msg) {
+    private static void iniciaComunicacao() throws IOException {
 
-        String teste = "Teste";
-        /*TRANSFORMAR EM ASCCI ANTES DO ENVIO*/
-        out.println(teste);
+        Scanner consoleIn = new Scanner(System.in);
+        while (ativo) {
+            System.out.println("\n\n\nCLIENTE:\nIntroduza msg:");
+            String msgIn = consoleIn.next();
+            /*CONVERTER PARA ASCII*/
+            out.println(msgIn);
+            out.flush();
 
-    }
-
-    private void msgRecebida() {
-        try {
             String msg;
-            while ((msg = in.readLine()) != null && estado == true) {
-                System.out.println("Resposta do servidor: " + msg);
+            System.out.println("\n\n\nSERVIDOR:\n");
+            while ((msg = in.readLine()) != null && msg.length() > 0) {
+                System.out.println(msg);
             }
-        } catch (IOException ex) {
-            Logger.getLogger(presencesClient.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }
 
-    public void desligar() {
-        out.flush();
+        ligacao.close();
+        System.out.println("Terminou a ligacao!");
     }
 
 }
